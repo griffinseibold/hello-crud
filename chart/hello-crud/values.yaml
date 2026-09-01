@@ -1,0 +1,39 @@
+# SQLite allows a single writer and the volume is ReadWriteOnce, so this
+# application supports at most one replica. Scale between 0 and 1.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/griffinseibold/hello-crud
+  tag: "0.3.0"
+  pullPolicy: IfNotPresent
+
+storage:
+  size: 1Gi
+  # Empty uses the cluster's default StorageClass.
+  storageClassName: ""
+
+# Labels applied to the release namespace so platform policies (such as the
+# homelab Gateway's allowedRoutes namespace selector) can admit this
+# application.
+namespace:
+  create: true
+  labels:
+    gateway.homelab/access: public
+
+httpRoute:
+  enabled: true
+  # An empty list attaches as the catch-all route for every hostname the
+  # Gateway listener serves; set hostnames to claim specific ones.
+  hostnames: []
+  parentRef:
+    name: homelab
+    namespace: gateway-system
+    sectionName: http
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi

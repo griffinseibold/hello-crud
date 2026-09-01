@@ -22,8 +22,10 @@ namespace:
 
 httpRoute:
   enabled: true
-  # An empty list attaches as the catch-all route for every hostname the
-  # Gateway listener serves; set hostnames to claim specific ones.
+  # The route claims <chart name>.<domain> by default. Set hostnames to claim
+  # explicit names instead, or set domain to "" (with hostnames empty) to
+  # attach as the catch-all route for every hostname the Gateway serves.
+  domain: localhost
   hostnames: []
   parentRef:
     name: homelab

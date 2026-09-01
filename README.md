@@ -57,6 +57,7 @@ Notable values (see `chart/hello-crud/values.yaml` for all of them):
 | --- | --- |
 | `replicaCount` | 0 stops the app, 1 runs it |
 | `image.tag` | Released application version |
-| `httpRoute.hostnames` | Gateway hostnames; empty list is the catch-all |
+| `httpRoute.domain` | Route hostname becomes `hello-crud.<domain>`; empty means catch-all |
+| `httpRoute.hostnames` | Explicit hostnames, overriding the derived one |
 | `namespace.labels` | Labels the platform Gateway requires for route attachment |
 | `storage.size` / `storage.storageClassName` | Persistent volume settings |

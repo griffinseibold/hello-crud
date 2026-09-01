@@ -6,9 +6,12 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Chart.Name }}
 spec:
-  {{- with .Values.httpRoute.hostnames }}
+  {{- if .Values.httpRoute.hostnames }}
   hostnames:
-    {{- toYaml . | nindent 4 }}
+    {{- toYaml .Values.httpRoute.hostnames | nindent 4 }}
+  {{- else if .Values.httpRoute.domain }}
+  hostnames:
+    - {{ printf "%s.%s" .Chart.Name .Values.httpRoute.domain }}
   {{- end }}
   parentRefs:
     - name: {{ .Values.httpRoute.parentRef.name }}

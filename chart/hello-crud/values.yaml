@@ -32,6 +32,16 @@ httpRoute:
     namespace: gateway-system
     sectionName: http
 
+# The homelab's language model runs only while an application asks for it.
+# Enabling this adds the homelab.local/llm: requested label to the Deployment,
+# which tells the homelab to start the model while this app has replicas
+# running and to stop it a few minutes after nothing requests it. It also
+# passes url to the app as LLM_URL. Off by default so the sample app never
+# keeps the GPU busy.
+llm:
+  enabled: false
+  url: http://llama-server.llm.svc.cluster.local/v1
+
 resources:
   requests:
     cpu: 25m

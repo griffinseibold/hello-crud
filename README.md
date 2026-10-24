@@ -16,6 +16,8 @@ build, Helm chart, and CI all live in this repository.
 | GET | `/items/<id>` | Fetch one item |
 | PUT | `/items/<id>` | Rename an item |
 | DELETE | `/items/<id>` | Delete an item |
+| GET | `/llm` | Whether the language model is enabled and ready |
+| POST | `/items/<id>/describe` | One-sentence description of an item from the language model |
 
 Items are stored in SQLite at `DATABASE_PATH` (default `/tmp/hello-crud.db`;
 the chart sets `/data/hello-crud.db` on a persistent volume).
@@ -61,3 +63,54 @@ Notable values (see `chart/hello-crud/values.yaml` for all of them):
 | `httpRoute.hostnames` | Explicit hostnames, overriding the derived one |
 | `namespace.labels` | Labels the platform Gateway requires for route attachment |
 | `storage.size` / `storage.storageClassName` | Persistent volume settings |
+| `llm.enabled` | Request the homelab's language model and enable the `/llm` endpoints (default `false`) |
+| `llm.url` | OpenAI-compatible base URL of the language model |
+
+## Optional: the homelab's language model
+
+The homelab runs a language model (Qwen3-8B behind an OpenAI-compatible API)
+only while some application asks for it. An application asks by carrying the
+label `homelab.local/llm: requested` on its Deployment. The request counts
+while the Deployment has at least one replica, and the homelab stops the model
+a few minutes after nothing running requests it.
+
+hello-crud shows both sides of this. By default it does not carry the label,
+so the sample app never keeps the GPU busy. Setting `llm.enabled=true` (as a
+Helm value, or as a parameter on the Argo CD application) adds the label and
+passes `llm.url` to the app as `LLM_URL`:
+
+```bash
+helm upgrade --install hello-crud chart/hello-crud --set llm.enabled=true
+```
+
+With it on, two endpoints use the model:
+
+```bash
+curl http://hello-crud.localhost/llm
+# {"enabled": true, "ready": true}
+
+curl -X POST http://hello-crud.localhost/items/1/describe
+# {"id": 1, "name": "teapot", "description": "A cheerful little teapot ..."}
+```
+
+`/llm` reports `ready: false` until the model's health check answers. The
+description is generated fresh each time and is not saved.
+
+The model takes a couple of minutes to load after it is first requested, so
+right after the app starts `/items/<id>/describe` answers `503` with a
+`Retry-After` header and `{"error": "the language model is starting; try
+again shortly"}`. Retry after that many seconds. Other responses:
+
+| Status | Meaning |
+| --- | --- |
+| `200` | Description generated |
+| `404` | No item with that id |
+| `501` | The feature is off (`LLM_URL` is not set) |
+| `502` | The model answered with an error or something unusable |
+| `503` | The model is still starting; see `Retry-After` |
+
+To run it locally, point `LLM_URL` at any OpenAI-compatible server:
+
+```bash
+LLM_URL=http://localhost:8000/v1 flask run --port 8080
+```

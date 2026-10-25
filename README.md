@@ -34,13 +34,13 @@ flask run --port 8080
 
 ## Releases
 
-Pushing a tag like `v0.3.0` runs the tests, lints the chart, and publishes
-`ghcr.io/griffinseibold/hello-crud:0.3.0` (and `:latest`) through GitHub
+Pushing a tag like `v0.4.0` runs the tests, lints the chart, and publishes
+`ghcr.io/griffinseibold/hello-crud:0.4.0` (and `:latest`) through GitHub
 Actions. No local docker build is required.
 
 ```bash
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.4.0
+git push origin v0.4.0
 ```
 
 ## Deployment
